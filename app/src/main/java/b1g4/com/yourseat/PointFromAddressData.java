@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public final class PointFromAddressData implements Serializable {
     @SerializedName("meta") Meta meta;
-    @SerializedName("documents") ArrayList<Document> documents;
+    @SerializedName("documents") ArrayList<Document> documents = new ArrayList<>();
 
     public final class Meta implements Serializable {
         @SerializedName("total_count") int total_count;
