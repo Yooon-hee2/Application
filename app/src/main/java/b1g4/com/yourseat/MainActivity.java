@@ -3,6 +3,7 @@ package b1g4.com.yourseat;
 import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -63,6 +64,9 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private ListView searchedRouteListView;
     private SavedRouteListViewAdapter searchedRouteLVAdapter;
 
+    //즐겨찾기를 위해 추가
+    private ArrayList<String> starList;
+    private String starListString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         endEditText = findViewById(R.id.endLocation);
 
         searchedRouteArrayList = new ArrayList<ArrayList<String>>();
+        starList = new ArrayList<>();
 
         /*ArrayList<ArrayList<String>> apiRouteLists = null;
         for(int i=0; i< apiRouteLists.size(); i++) {
@@ -125,7 +130,6 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         sample.add("중앙대중문");
         sample.add("23");
         searchedRouteArrayList.add(sample);
-
         // 버튼 설정
         BtnOnClickListener onClickListener = new BtnOnClickListener() ;
         Button startSearchBtn = (Button)findViewById(R.id.startSearchBtn);
@@ -134,6 +138,23 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         startSearchBtn.setOnClickListener(onClickListener);
         endSearchBtn.setOnClickListener(onClickListener);
         searchPathBtn.setOnClickListener(onClickListener);
+
+        //즐겨찾기 관련 버튼 설정
+        Button getStarListBtn = (Button)findViewById(R.id.getStarList);
+        Button addStarListBtn = (Button)findViewById(R.id.addStarList);
+        addStarListBtn.setOnClickListener(mClickListener);
+        getStarListBtn.setOnClickListener(mClickListener2);
+
+//        //즐겨찾기 관련
+//        Intent starIntent = getIntent();
+//        String[] savedAddress = starIntent.getStringArrayExtra("savedPoints");
+//        Log.d("ADDRESS", "onCreate: 주소를 받았다." + savedAddress[0] + " , " + savedAddress[1]);
+//        if(savedAddress != null) {
+//            startAddress = savedAddress[0];
+//            endAddress = savedAddress[1];
+//            startEditText.setText(startAddress);
+//            endEditText.setText(endAddress);
+//        }
 
 //        SavedSharedPreference.deleteAll(getBaseContext());
         searchedRouteListView = findViewById(R.id.searchRecordLV);
@@ -175,6 +196,30 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 //        }
     }
 
+    Button.OnClickListener mClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+
+                   String addStarListString = starListString;
+                   starList.add(addStarListString);
+                   SavedSharedPreference.setStarListAddress(getApplicationContext(),starList);
+                    Log.d("STAR", "onClick: 추가버튼 눌림");
+                    Toast.makeText(getApplicationContext(), "[ "+ addStarListString +" ]\n 항목이 즐겨찾기에 추가되었습니다.", Toast.LENGTH_LONG).show();
+            }
+    };
+
+
+    Button.OnClickListener mClickListener2 = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), GetStarListActivity.class);
+                starList = SavedSharedPreference.getStarListAddress(getBaseContext());
+                intent.putExtra("starList", starList);
+                startActivityForResult(intent,1111);
+                Log.d("STAR", "onClick: 목록 눌림");
+        }
+
+    };
 
     // 주소를 입력하고 검색 버튼을 눌렀을 때 실행되는 파트
     class BtnOnClickListener implements Button.OnClickListener {
@@ -191,6 +236,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                     String start = startEditText.getText().toString();
                     String end = endEditText.getText().toString();
                     String route = start + " → " + end;
+                    //starListString = startAddress + " → " + endAddress;
 
                     Log.d("SavedSharedPreference", route);
                     Log.d("SavedSharedPreference", searchedRouteList.toString());
@@ -201,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                             searchedRouteList.subList(10,searchedRouteList.size()).clear();
                         }
                         SavedSharedPreference.setAddressList(getBaseContext(), searchedRouteList);
-                    }
+                }
 
 
                     // 출발/도착지의 x,y 좌표 받아오기
@@ -226,6 +272,8 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                     intent = new Intent(getApplicationContext(), GetSearchedRouteActivity.class);
                     intent.putExtra("startAddress", startAddress);
                     intent.putExtra("endAddress", endAddress);
+
+                    starListString = startAddress + " → " + endAddress;
                     // 출발지 - 도착지간 직선거리가 700m 이하이면 길찾기 수행X
                     CoordinatesDistance coordinatesDistance = new CoordinatesDistance();
                     if(coordinatesDistance.isTooShort(startX, startY, endX, endY)) {
@@ -240,6 +288,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 
                 }
             }
+
             // 출발/도착지 주소명 검색 버튼 클릭 시
             else {
                String location = null;
@@ -261,6 +310,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                         intentE.putExtra("input", location);
                         startActivityForResult(intentE, Code.requestCodeEnd);//액티비티 띄우기
                         break;
+
                 }
 
             }
@@ -272,6 +322,20 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent resultIntent) {
+        //super.onActivityResult(requestCode,resultCode,resultIntent);
+        if(requestCode == 1111){
+            if(resultCode == 1234){
+                String[] savedAddress = resultIntent.getStringArrayExtra("savedPoints");
+                Log.d("ADDRESS", "onCreate: 주소를 받았다." + savedAddress[0] + " , " + savedAddress[1]);
+                if(savedAddress != null) {
+                    startAddress = savedAddress[0];
+                    endAddress = savedAddress[1];
+                    startEditText.setText(startAddress);
+                    endEditText.setText(endAddress);
+                }
+                Log.d("TAG", "onActivityResult: 즐겨찾기 목록 해당 주소 전송 완료");
+            }
+        }
         if(resultCode == Code.resultCode) {
             String selectedResult = resultIntent.getStringExtra("selectedAddr");
             if(requestCode == Code.requestCodeStart) { // 출발지 주소명 검색으로부터 넘어간 액티비티였을 경우 반환값으로 출발지 EditText 값 설정
@@ -473,6 +537,4 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
             }
         }
     }
-
-
 }

@@ -17,8 +17,47 @@ public class SavedSharedPreference {
     static final String PREF_END_ADDRESS = "end_address";
     static final String PREF_ADDRESS_LIST = "address_list";
 
+    //즐겨찾기를 위해 추가
+    static final String STAR_LIST_ADDRESS = "starlist_address";
+
     static SharedPreferences getSharedPreferences(Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context);
+    }
+
+    public static void setStarListAddress(Context context, ArrayList<String> starAddressList) {
+        SharedPreferences.Editor editor = getSharedPreferences(context).edit();
+
+        editor.remove(STAR_LIST_ADDRESS);
+        editor.apply();
+
+        JSONArray jsonArray =  new JSONArray();
+        for (int i = 0; i < starAddressList.size(); i++)
+            jsonArray.put(starAddressList.get(i));
+
+        if (!starAddressList.isEmpty())
+            editor.putString(STAR_LIST_ADDRESS, jsonArray.toString());
+        else
+            editor.putString(STAR_LIST_ADDRESS, null);
+        editor.apply();
+    }
+
+    public static ArrayList<String> getStarListAddress(Context context) {
+        SharedPreferences sharedPreferences = getSharedPreferences(context);
+        String json = sharedPreferences.getString(STAR_LIST_ADDRESS, null);
+
+        ArrayList<String> stringArrayList = new ArrayList<String>();
+        if (json != null) {
+            try {
+                JSONArray jsonArray = new JSONArray(json);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    String address = jsonArray.optString(i);
+                    stringArrayList.add(address);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return stringArrayList;
     }
 
     public static void setAddressList(Context context, ArrayList<String> addressList) {
