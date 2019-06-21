@@ -70,8 +70,10 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 
         //권한 확인 Context.checkSelfPermission
         if(m_checkSelfPermission(
+                Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )) {
             Log.d("권한","m_checkSelfPermission가 참 permission is granted");
         }else{
             Log.d("권한","m_checkSelfPermission가 거짓 permission is not granted");
@@ -96,8 +98,11 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         //mapViewContainer.addView(mapView);
         mapView.setCurrentLocationEventListener(this);
 
-        mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
-
+        try {
+            mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         startEditText = findViewById(R.id.startLocation);
         endEditText = findViewById(R.id.endLocation);
