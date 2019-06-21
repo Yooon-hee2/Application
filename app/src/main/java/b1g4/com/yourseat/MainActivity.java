@@ -1,3 +1,4 @@
+
 package b1g4.com.yourseat;
 
 import android.Manifest;
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private Notification.Builder builder;
 
     private ArrayList<ArrayList<String>> searchedRouteArrayList;
+    private ArrayList<ArrayList<String>> searchedRouteArrayListByStop; //yoonhee
 
     private MapView mapView;
     private CurrentLocationXY currentLocationXY = CurrentLocationXY.getInstance();
@@ -75,8 +77,10 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 
         //권한 확인 Context.checkSelfPermission
         if(m_checkSelfPermission(
+                Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )) {
             Log.d("권한","m_checkSelfPermission가 참 permission is granted");
         }else{
             Log.d("권한","m_checkSelfPermission가 거짓 permission is not granted");
@@ -101,8 +105,11 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         //mapViewContainer.addView(mapView);
         mapView.setCurrentLocationEventListener(this);
 
-        mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
-
+              try {
+            mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         startEditText = findViewById(R.id.startLocation);
         endEditText = findViewById(R.id.endLocation);
@@ -116,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
             searchedRouteArrayList.add(tmp);
         }*/
 
+      /*
         //테스트용 인풋 생성
         final ArrayList<String> sample = new ArrayList<>();
         sample.add("100000384");
@@ -130,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         sample.add("중앙대중문");
         sample.add("23");
         searchedRouteArrayList.add(sample);
+        */
         // 버튼 설정
         BtnOnClickListener onClickListener = new BtnOnClickListener() ;
         Button startSearchBtn = (Button)findViewById(R.id.startSearchBtn);
@@ -160,40 +169,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         searchedRouteListView = findViewById(R.id.searchRecordLV);
 
 
-//        //busInfo에 파일들을 읽어서 정보를 저장하는 코드를 실행해야 함
-//        String ext= Environment.getExternalStorageState();
-//        String sdPath;
-//        if(ext.equals(Environment.MEDIA_MOUNTED)){
-//            sdPath=Environment.getExternalStorageDirectory().getAbsolutePath();
-//        }else{
-//            sdPath=Environment.MEDIA_UNMOUNTED;
-//        }
-//        File myFolder=new File(sdPath.concat("/YourSeat"));
-//        Log.d("fileeee",myFolder.getAbsolutePath());
-//
-//        if(myFolder.exists() && myFolder.isDirectory()){
-//
-//            String routeDir=myFolder.getAbsolutePath()+"/routecsv.csv";
-//            String stationDir=myFolder.getAbsolutePath()+"/stationcsv.csv";
-//            String congestionDir=myFolder.getAbsolutePath()+"/congestioncsv.csv";
-//            File routeFIle=new File(routeDir);
-//            File stationFile=new File(stationDir);
-//            File congestionFile=new File(congestionDir);
-//            if(routeFIle.exists() && stationFile.exists() && congestionFile.exists()){
-//                App app_readFiles=new App();
-//                if(app_readFiles.saveBusInfo_for_android(routeDir,stationDir,congestionDir)){
-//                    Log.d("read file","success save BusInfo");
-//
-//                    Toast.makeText(getApplicationContext(), "전처리 완료", Toast.LENGTH_SHORT).show();
-//
-//                }else{
-//                    Log.d("read file","fail save BusInfo");
-//                    //여기서 강제 종료를 할것인가?
-//                }
-//            }else{
-//                Log.d("read file","파일이 없습니다");
-//            }
-//        }
+
     }
 
     Button.OnClickListener mClickListener = new View.OnClickListener() {
@@ -281,8 +257,20 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                     } else {
                         // 경로 탐색 파트로 출발/도착지 x,y 좌표 넘겨주기 -> 결과리스트 searchedRouteArrayList에 받도록.
                         Log.d("XYdata", "startX: " + startX + "startY: " + startY + "endX" + endX + "endY" + endY);
+                        try{ //yoonhee
+                            TCPClient tcpClient=new TCPClient();
+                            ResultOfServer resultOfServer=tcpClient.execute(startX,startY,endX, endY).get();
+                            searchedRouteArrayList=resultOfServer.searchedRouteArrayList;
+                            searchedRouteArrayListByStop=resultOfServer.searchedRouteArrayListByStop;
+                            //searchedRouteArrayList= tcpClient.execute(startX,startY,endX, endY).get().searchedRouteArrayList;
+                            //searchedRouteArrayListByStop = tcpClient.execute(startX,startY,endX, endY).get().searchedRouteArrayListByStop;
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         intent.putExtra("isSearched", "true");
                         intent.putExtra("sRouteList", searchedRouteArrayList);
+                        intent.putExtra("sRouteStationList",searchedRouteArrayListByStop);      //heesu
                     }
                     startActivity(intent);
 
