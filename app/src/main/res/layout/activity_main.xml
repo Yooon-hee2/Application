@@ -34,6 +34,52 @@
             android:id="@+id/endSearchBtn"
             android:text="검색"/>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/getStarList"
+                android:layout_weight="1"
+                android:text="즐겨찾기 목록"
+                android:backgroundTint="@android:color/holo_orange_light"
+                android:layout_margin="5dp"/>
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/addStarList"
+                android:layout_weight="1"
+                android:text="즐겨찾기 추가"
+                android:backgroundTint="@android:color/holo_orange_light"
+                android:layout_margin="5dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginVertical="17dp"
+            android:layout_marginHorizontal="7dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="최근 검색 기록"/>
+
+            <ListView
+                android:id="@+id/searchRecordLV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="7dp">
+
+            </ListView>
+
+        </LinearLayout>
+
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
