@@ -18,6 +18,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private PointFromAddressData endAddresses;
     private String startAddress = null;
     private String endAddress = null;
+    private String currentAddress = null;
     private NotificationManager notificationManager;
     private Notification.Builder builder;
 
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private ArrayList<ArrayList<String>> searchedRouteArrayListByStop; //yoonhee
 
     private MapView mapView;
+    private String NATIVE_API_KEY = "b01e7a27bea8966daba4e49a64c1eba9";
     private CurrentLocationXY currentLocationXY = CurrentLocationXY.getInstance();
 
     public final int MY_PERMISSIONS=4;
@@ -101,15 +104,16 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         printHashKey(); // 해시키 확인
 
         mapView = new MapView(this);
-        //ViewGroup mapViewContainer = (ViewGroup) findViewById(R.id.map_view);
-        //mapViewContainer.addView(mapView);
+        ViewGroup mapViewContainer = (ViewGroup) findViewById(R.id.map_view);
+        mapViewContainer.addView(mapView);
         mapView.setCurrentLocationEventListener(this);
-
-              try {
+        try {
             mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
+        mapView.setShowCurrentLocationMarker(true);
 
         startEditText = findViewById(R.id.startLocation);
         endEditText = findViewById(R.id.endLocation);
@@ -141,10 +145,14 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         */
         // 버튼 설정
         BtnOnClickListener onClickListener = new BtnOnClickListener() ;
+        Button startLocationBtn = (Button)findViewById(R.id.startLocationBtn);
         Button startSearchBtn = (Button)findViewById(R.id.startSearchBtn);
+        Button endLocationBtn = (Button)findViewById(R.id.endLocationBtn);
         Button endSearchBtn = (Button)findViewById(R.id.endSearchBtn);
         Button searchPathBtn = (Button)findViewById(R.id.searchPathBtn);
+        startLocationBtn.setOnClickListener(onClickListener);
         startSearchBtn.setOnClickListener(onClickListener);
+        endLocationBtn.setOnClickListener(onClickListener);
         endSearchBtn.setOnClickListener(onClickListener);
         searchPathBtn.setOnClickListener(onClickListener);
 
@@ -276,7 +284,36 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
 
                 }
             }
-
+            else if(v.getId() == R.id.startLocationBtn) {
+                ReverseGeoCodingResultListener onReverseGeoCodingResultListener = new ReverseGeoCodingResultListener();
+                MapReverseGeoCoder reverseGeoCoder = new MapReverseGeoCoder(NATIVE_API_KEY, currentLocationXY.getMapPoint(), onReverseGeoCodingResultListener, MainActivity.this);
+                reverseGeoCoder.startFindingAddress();
+                if(currentAddress == null) {
+                   Log.d("CURRENT LOCATION", "null");
+                } else {
+                    if(currentAddress.equals("FAIL")) {
+                        Log.d("CURRENT LOCATION", "fail");
+                    } else {
+                        startAddress = currentAddress;
+                        startEditText.setText(startAddress);
+                    }
+                }
+            }
+            else if(v.getId() == R.id.endLocationBtn) {
+                ReverseGeoCodingResultListener onReverseGeoCodingResultListener = new ReverseGeoCodingResultListener();
+                MapReverseGeoCoder reverseGeoCoder = new MapReverseGeoCoder(NATIVE_API_KEY, currentLocationXY.getMapPoint(), onReverseGeoCodingResultListener, MainActivity.this);
+                reverseGeoCoder.startFindingAddress();
+                if(currentAddress == null) {
+                    Log.d("CURRENT LOCATION", "null");
+                } else {
+                    if(currentAddress.equals("FAIL")) {
+                        Log.d("CURRENT LOCATION", "fail");
+                    } else {
+                        endAddress = currentAddress;
+                        startEditText.setText(endAddress);
+                    }
+                }
+            }
             // 출발/도착지 주소명 검색 버튼 클릭 시
             else {
                String location = null;
@@ -380,6 +417,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         Log.i("CurrentLocationUpdate", String.format("MapView onCurrentLocationUpdate (%f,%f) accuracy (%f)", mapPointGeo.latitude, mapPointGeo.longitude, accuracyInMeters));
         currentLocationXY.setX(Double.toString(mapPointGeo.longitude));
         currentLocationXY.setY(Double.toString(mapPointGeo.latitude));
+        currentLocationXY.setMapPoint(currentLocation);
         Log.i("Check", currentLocationXY.getX());
     }
 
@@ -523,6 +561,19 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                 }
                 return;
             }
+        }
+    }
+
+    // reverseGeoCodingResultListener
+    class ReverseGeoCodingResultListener implements MapReverseGeoCoder.ReverseGeoCodingResultListener {
+        @Override
+        public void onReverseGeoCoderFoundAddress(MapReverseGeoCoder mapReverseGeoCoder, String s) {
+            currentAddress = s;
+        }
+
+        @Override
+        public void onReverseGeoCoderFailedToFindAddress(MapReverseGeoCoder mapReverseGeoCoder) {
+            currentAddress = "FAIL";
         }
     }
 }

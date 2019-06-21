@@ -5,7 +5,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <application
@@ -29,7 +28,9 @@
 
         <meta-data
             android:name="com.kakao.sdk.AppKey"
-            android:value="caf66676850db2f4d416595a12521f95" />
+            android:value="b01e7a27bea8966daba4e49a64c1eba9" />
+
+        <uses-library android:name="org.apache.http.legacy" android:required="false"/>
     </application>
 
 </manifest>
