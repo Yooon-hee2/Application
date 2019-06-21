@@ -31,6 +31,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -60,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private Notification.Builder builder;
 
     private ArrayList<ArrayList<String>> searchedRouteArrayList;
+    private ArrayList<ArrayList<String>> searchedRouteArrayListByStop; //yoonhee
 
     private MapView mapView;
     private CurrentLocationXY currentLocationXY = CurrentLocationXY.getInstance();
@@ -112,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         endEditText = findViewById(R.id.endLocation);
 
         searchedRouteArrayList = new ArrayList<ArrayList<String>>();
+        searchedRouteArrayListByStop = new ArrayList<ArrayList<String>>(); //yoonhee
 
         /*ArrayList<ArrayList<String>> apiRouteLists = null;
         for(int i=0; i< apiRouteLists.size(); i++) {
@@ -120,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         }*/
 
         //테스트용 인풋 생성
+        /*
         final ArrayList<String> sample = new ArrayList<>();
         sample.add("100000384");
         sample.add("중앙대정문");
@@ -133,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         sample.add("중앙대중문");
         sample.add("23");
         searchedRouteArrayList.add(sample);
+        */
 
         // 버튼 설정
         BtnOnClickListener onClickListener = new BtnOnClickListener() ;
@@ -222,11 +227,22 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                     } else {
                         // 경로 탐색 파트로 출발/도착지 x,y 좌표 넘겨주기 -> 결과리스트 searchedRouteArrayList에 받도록.
                         Log.d("XYdata", "startX: " + startX + "startY: " + startY + "endX" + endX + "endY" + endY);
+                        try{ //yoonhee
+                            TCPClient tcpClient=new TCPClient();
+                            ResultOfServer resultOfServer=tcpClient.execute(startX,startY,endX, endY).get();
+                            searchedRouteArrayList=resultOfServer.searchedRouteArrayList;
+                            searchedRouteArrayListByStop=resultOfServer.searchedRouteArrayListByStop;
+                            //searchedRouteArrayList= tcpClient.execute(startX,startY,endX, endY).get().searchedRouteArrayList;
+                            //searchedRouteArrayListByStop = tcpClient.execute(startX,startY,endX, endY).get().searchedRouteArrayListByStop;
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         intent.putExtra("isSearched", "true");
                         intent.putExtra("sRouteList", searchedRouteArrayList);
+                        intent.putExtra("sRouteStationList",searchedRouteArrayListByStop);      //heesu
                     }
                     startActivity(intent);
-
                 }
             }
             // 출발/도착지 주소명 검색 버튼 클릭 시
