@@ -11,3 +11,9 @@
 /build
 /captures
 .externalNativeBuild
+.vscode
+OSSWProj/data
+OSSWProj/bin
+poi-4.1.0
+poi-bin-4.1.0-20190412.zip
+data

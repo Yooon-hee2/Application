@@ -18,7 +18,7 @@ import java.net.URLEncoder;
  * */
 public class GetPointFromAddress extends AsyncTask<String, String, String> {
 
-    String auth = "c2aa76e96eafb95759ed2ce1df1cbb00";
+    String auth = "7d6284ad9ad1da5fbe0177af6945e99e";
     String result = null;
 
     // 백그라운드 작업 시작전 호출

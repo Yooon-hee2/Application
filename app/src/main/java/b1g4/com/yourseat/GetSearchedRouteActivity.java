@@ -9,8 +9,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 
 public class GetSearchedRouteActivity extends AppCompatActivity {
@@ -84,7 +82,7 @@ public class GetSearchedRouteActivity extends AppCompatActivity {
                     String selectedItem = (String)parent.getItemAtPosition(position);
                     selectedItemView.setText((position+1) + "번째 경로를 선택하셨습니다.");
 
-                    Intent resultIntent = new Intent(getApplicationContext(), UserSelectedRoute.class);
+                    Intent resultIntent = new Intent(getApplicationContext(), UserSelectedRouteActivity.class);
                     //selectedItem을 putExtra
                     resultIntent.putExtra("selectedRoute",selectedItem);
                     resultIntent.putExtra("startAddress", startAddress);

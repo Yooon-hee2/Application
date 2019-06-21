@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -14,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".AddrSelectActivity"></activity>
-        <activity android:name=".UserSelectedRoute"></activity>
+        <activity android:name=".UserSelectedRouteActivity"></activity>
         <activity android:name=".GetSearchedRouteActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -26,7 +28,7 @@
 
         <meta-data
             android:name="com.kakao.sdk.AppKey"
-            android:value="b01e7a27bea8966daba4e49a64c1eba9" />
+            android:value="caf66676850db2f4d416595a12521f95" />
     </application>
 
 </manifest>
