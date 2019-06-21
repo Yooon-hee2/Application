@@ -6,9 +6,9 @@ import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public final class PointFromAddressData implements Serializable {
+public final class SearchByAddressData implements Serializable {
     @SerializedName("meta") Meta meta;
-    @SerializedName("documents") ArrayList<Document> documents = new ArrayList<>();
+    @SerializedName("documents") ArrayList<Document> documents;
 
     public final class Meta implements Serializable {
         @SerializedName("total_count") int total_count;

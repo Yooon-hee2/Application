@@ -23,7 +23,7 @@ public class AddrSelectActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         String input = intent.getExtras().getString("input");
-        PointFromAddressData addresses = (PointFromAddressData) intent.getSerializableExtra("addrList");
+        Object addresses = (Object) intent.getSerializableExtra("addrList");
 
         ArrayList<String> addressList = new ArrayList<>();
 
@@ -31,11 +31,21 @@ public class AddrSelectActivity extends AppCompatActivity {
         selectedTextView = (TextView)findViewById(R.id.selectedAddr);
         selectedTextView.setText(input); // 검색한 주소명으로 상단 selectedTextView 기본값 설정
 
-        if(addresses.documents.size() == 0) {
-            addressList.add("검색결과가 없습니다.");
-        } else {
-            for(int i = 0; i < addresses.documents.size(); i++) {
-                addressList.add(addresses.documents.get(i).address_name);
+        if(addresses instanceof SearchByAddressData) {
+            if (((SearchByAddressData) addresses).documents.size() == 0) {
+                addressList.add("검색결과가 없습니다.");
+            } else {
+                for (int i = 0; i < ((SearchByAddressData) addresses).documents.size(); i++) {
+                    addressList.add(((SearchByAddressData) addresses).documents.get(i).address_name);
+                }
+            }
+        } else if(addresses instanceof SearchByKeywordData) {
+            if (((SearchByKeywordData) addresses).documents.size() == 0) {
+                addressList.add("검색결과가 없습니다.");
+            } else {
+                for (int i = 0; i < ((SearchByKeywordData) addresses).documents.size(); i++) {
+                    addressList.add(((SearchByKeywordData) addresses).documents.get(i).place_name);
+                }
             }
         }
 
