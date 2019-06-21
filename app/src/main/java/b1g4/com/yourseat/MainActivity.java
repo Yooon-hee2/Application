@@ -1,22 +1,13 @@
 package b1g4.com.yourseat;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -30,15 +21,20 @@ import android.widget.ListView;
 import android.widget.Toast;
 import com.google.gson.Gson;
 
-import java.io.File;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import net.daum.mf.map.api.*;
+
+import org.apache.poi.ss.formula.functions.T;
+
+import b1g4.com.yourseat.mapAPI.SearchByAddress;
+import b1g4.com.yourseat.mapAPI.SearchByKeyword;
 
 //import b1g4.com.yourseat.app.App;
 
@@ -52,8 +48,8 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private EditText startEditText;
     private EditText endEditText;
 
-    private PointFromAddressData startAddresses;
-    private PointFromAddressData endAddresses;
+    private Object startAddresses;
+    private Object endAddresses;
     private String startAddress = null;
     private String endAddress = null;
     private NotificationManager notificationManager;
@@ -189,22 +185,11 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
                     Toast.makeText(getApplicationContext(), "출발지와 도착지 입력을 완료해주세요.", Toast.LENGTH_SHORT);
                 } else {
                     // 출발/도착지의 x,y 좌표 받아오기
-                    String startX = null;
-                    String startY = null;
-                    String endX = null;
-                    String endY = null;
-                    for(int i=0; i<startAddresses.documents.size(); i++) {
-                        if(startAddress.equals(startAddresses.documents.get(i).address_name)) {
-                            startX = startAddresses.documents.get(i).x;
-                            startY = startAddresses.documents.get(i).y;
-                        }
-                    }
-                    for(int i=0; i<endAddresses.documents.size(); i++) {
-                        if(endAddress.equals(endAddresses.documents.get(i).address_name)){
-                            endX = endAddresses.documents.get(i).x;
-                            endY = endAddresses.documents.get(i).y;
-                        }
-                    }
+                    HashMap XYresult = getXY(startAddresses, endAddresses);
+                    String startX = XYresult.get("startX").toString();
+                    String startY = XYresult.get("startY").toString();
+                    String endX = XYresult.get("endX").toString();
+                    String endY = XYresult.get("endY").toString();
 
                     Intent intent;
                     intent = new Intent(getApplicationContext(), GetSearchedRouteActivity.class);
@@ -226,27 +211,34 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
             }
             // 출발/도착지 주소명 검색 버튼 클릭 시
             else {
-               String location = null;
-                PointFromAddressData addrData = null;
+               String searchInput = null;
+                SearchByAddressData addrData = null;
                 switch(v.getId()) {
                     case R.id.startSearchBtn:
-                        location = startEditText.getText().toString();
-                        startAddresses = getAddrData(location);
+                        searchInput = startEditText.getText().toString();
+                        startAddresses = getAddrData(searchInput);
                         Intent intentS = new Intent(getApplicationContext(), AddrSelectActivity.class);
-                        intentS.putExtra("addrList", startAddresses);
-                        intentS.putExtra("input", location);
+                        if(startAddresses instanceof SearchByAddressData) {
+                            intentS.putExtra("addrList", (SearchByAddressData)startAddresses);
+                        } else if(startAddresses instanceof SearchByKeywordData) {
+                            intentS.putExtra("addrList", (SearchByKeywordData)startAddresses);
+                        }
+                        intentS.putExtra("input", searchInput);
                         startActivityForResult(intentS, Code.requestCodeStart);//액티비티 띄우기
                         break;
                     case R.id.endSearchBtn:
-                        location = endEditText.getText().toString();
-                        endAddresses = getAddrData(location);
+                        searchInput = endEditText.getText().toString();
+                        endAddresses = getAddrData(searchInput);
                         Intent intentE = new Intent(getApplicationContext(), AddrSelectActivity.class);
-                        intentE.putExtra("addrList", endAddresses);
-                        intentE.putExtra("input", location);
+                        if(endAddresses instanceof SearchByAddressData) {
+                            intentE.putExtra("addrList", (SearchByAddressData)endAddresses);
+                        } else if(endAddresses instanceof SearchByKeywordData) {
+                            intentE.putExtra("addrList", (SearchByKeywordData)endAddresses);
+                        }
+                        intentE.putExtra("input", searchInput);
                         startActivityForResult(intentE, Code.requestCodeEnd);//액티비티 띄우기
                         break;
                 }
-
             }
         }
     }
@@ -268,21 +260,63 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         }
     }
 
-    // 인풋으로 받은 주소명으로 GetPointFromAddress AsyncTask를 실행해서 REST API를 호출한 후 결과 Address 데이터를 반환해준다.
-    public PointFromAddressData getAddrData(String input) {
+    public HashMap<String, String> getXY(Object StartAddresses, Object EndAddresses) {
+        HashMap<String, String> XYresult = new HashMap<String, String>();
+        if(startAddresses instanceof SearchByAddressData) {
+            SearchByAddressData startData = (SearchByAddressData)startAddresses;
+            SearchByAddressData endData = (SearchByAddressData)endAddresses;
+
+            for(int i=0; i<startData.documents.size(); i++) {
+                if(startAddress.equals(startData.documents.get(i).address_name)) {
+                    XYresult.put("startX", startData.documents.get(i).x);
+                    XYresult.put("startY", startData.documents.get(i).y);
+                }
+            }
+            for(int i=0; i<endData.documents.size(); i++) {
+                if(endAddress.equals(endData.documents.get(i).address_name)) {
+                    XYresult.put("endX", endData.documents.get(i).x);
+                    XYresult.put("endY", endData.documents.get(i).y);
+                }
+            }
+        } else if(startAddresses instanceof SearchByKeywordData) {
+            SearchByKeywordData startData = (SearchByKeywordData)startAddresses;
+            SearchByKeywordData endData = (SearchByKeywordData)endAddresses;
+
+            for(int i=0; i<startData.documents.size(); i++) {
+                if(startAddress.equals(startData.documents.get(i).address_name)) {
+                    XYresult.put("startX", startData.documents.get(i).x);
+                    XYresult.put("startY", startData.documents.get(i).y);
+                }
+            }
+            for(int i=0; i<endData.documents.size(); i++) {
+                if(endAddress.equals(endData.documents.get(i).address_name)) {
+                    XYresult.put("endX", endData.documents.get(i).x);
+                    XYresult.put("endY", endData.documents.get(i).y);
+                }
+            }
+        }
+        return XYresult;
+    }
+
+    // 인풋으로 받은 주소명으로 SearchByAddress AsyncTask를 실행해서 REST API를 호출한 후 결과 Address 데이터를 반환해준다.
+    public Object getAddrData(String input) {
         try {
-            String result = new GetPointFromAddress().execute(input).get();
-            Log.d("getPointResult", result);
+            String result = new SearchByAddress().execute(input).get();
+            Log.d("REST API result", result);
             Gson gsonResult = new Gson();
-            PointFromAddressData pointFromAddressData = gsonResult.fromJson(result, PointFromAddressData.class);
-            return pointFromAddressData;
+            Object searchInputData = gsonResult.fromJson(result, SearchByAddressData.class);
+            if(((SearchByAddressData) searchInputData).meta.total_count == 0) {
+                result = new SearchByKeyword().execute(input).get();
+                Log.d("REST API result", result);
+                gsonResult = new Gson();
+                searchInputData = gsonResult.fromJson(result, SearchByKeywordData.class);
+            }
+            return searchInputData;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
-
-
 
 
     /*
