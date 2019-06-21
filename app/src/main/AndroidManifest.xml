@@ -17,6 +17,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".AddrSelectActivity"></activity>
         <activity android:name=".UserSelectedRouteActivity"></activity>
+        <activity android:name=".GetStarListActivity"></activity>
         <activity android:name=".GetSearchedRouteActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
